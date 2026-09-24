@@ -6,22 +6,19 @@ let shouldResetDisplay = false;
 
 function appendNumber(number) {
     if (shouldResetDisplay) {
-        currentInput = number;
+        currentInput = number === '.' ? '0.' : number;
         shouldResetDisplay = false;
-    } else {
-        if (number === '.' && currentInput.includes('.')) {
+    } else if (number === '.') {
+        if (currentInput.includes('.')) {
             return;
         }
-
-        if (currentInput === '0' && number !== '.') {
+        currentInput = currentInput === '' ? '0.' : currentInput + '.';
+    } else {
+        if (currentInput === '0') {
             currentInput = number;
         } else {
             currentInput += number;
         }
-    }
-
-    if (number === '.' && currentInput === '') {
-        currentInput = '0.';
     }
 
     updateDisplay();
