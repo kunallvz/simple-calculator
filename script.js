@@ -9,19 +9,26 @@ function appendNumber(number) {
         currentInput = number;
         shouldResetDisplay = false;
     } else {
+        if (number === '.' && currentInput.includes('.')) {
+            return;
+        }
+
         if (currentInput === '0' && number !== '.') {
             currentInput = number;
-        } else if (number === '.' && currentInput.includes('.')) {
-            return;
         } else {
             currentInput += number;
         }
     }
+
+    if (number === '.' && currentInput === '') {
+        currentInput = '0.';
+    }
+
     updateDisplay();
 }
 
 function appendOperator(op) {
-    if (operation !== null) {
+    if (operation !== null && !shouldResetDisplay) {
         calculateResult();
     }
     previousInput = currentInput;
@@ -60,7 +67,7 @@ function calculateResult() {
             return;
     }
 
-    currentInput = result.toString();
+    currentInput = Number.isInteger(result) ? result.toString() : result.toFixed(10).replace(/\.0+$|(?<=\.[0-9]*?)0+$/g, '').replace(/\.$/, '');
     operation = null;
     shouldResetDisplay = true;
     updateDisplay();
@@ -75,8 +82,14 @@ function clearDisplay() {
 }
 
 function deleteLast() {
-    if (currentInput.length > 1) {
+    if (shouldResetDisplay) {
+        currentInput = previousInput || '0';
+        shouldResetDisplay = false;
+    } else if (currentInput.length > 1) {
         currentInput = currentInput.slice(0, -1);
+        if (currentInput === '-0') {
+            currentInput = '0';
+        }
     } else {
         currentInput = '0';
     }
@@ -87,5 +100,20 @@ function updateDisplay() {
     display.value = currentInput;
 }
 
-// Initialize display
+window.addEventListener('keydown', (event) => {
+    if (/^[0-9]$/.test(event.key)) {
+        appendNumber(event.key);
+    } else if (event.key === '.') {
+        appendNumber('.');
+    } else if (['+', '-', '*', '/'].includes(event.key)) {
+        appendOperator(event.key);
+    } else if (event.key === 'Enter' || event.key === '=') {
+        calculateResult();
+    } else if (event.key === 'Backspace') {
+        deleteLast();
+    } else if (event.key === 'Escape') {
+        clearDisplay();
+    }
+});
+
 updateDisplay();
